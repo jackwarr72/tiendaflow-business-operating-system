@@ -1,0 +1,19 @@
+# Env
+.env
+
+# Dependencies
+node_modules
+
+# Next.js build output
+.next
+out
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Drizzle migrations are tracked (drizzle/*.sql, drizzle/meta/).
+# Only ignore the runtime journal dir if drizzle-kit recreates it.
+
+# OS
+.DS_Store
