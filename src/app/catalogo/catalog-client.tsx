@@ -2,8 +2,52 @@
 
 import { useState } from "react";
 import { ShareButton } from "@/components/share-button";
-import { ShoppingBag, MessageCircle } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useSyncExternalStore } from "react";
+import { Moon, Sun, ShoppingBag, MessageCircle } from "lucide-react";
 import type { Product, Category } from "@/db/schema";
+
+const THEME_EVENT = "tiendaflow-theme-change";
+
+function subscribe(onStoreChange: () => void) {
+  window.addEventListener(THEME_EVENT, onStoreChange);
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  const onSchemeChange = () => {
+    if (!localStorage.getItem("tiendaflow-theme")) {
+      applyTheme(mq.matches);
+    }
+  };
+  mq.addEventListener("change", onSchemeChange);
+  return () => {
+    window.removeEventListener(THEME_EVENT, onStoreChange);
+    mq.removeEventListener("change", onSchemeChange);
+  };
+}
+
+function applyTheme(dark: boolean) {
+  document.documentElement.classList.toggle("dark", dark);
+  document.documentElement.style.colorScheme = dark ? "dark" : "light";
+  window.dispatchEvent(new Event(THEME_EVENT));
+}
+
+function getSnapshot() {
+  return document.documentElement.classList.contains("dark");
+}
+
+function getServerSnapshot() {
+  return false;
+}
+
+function useTheme() {
+  const dark = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const toggleTheme = () => {
+    const next = !document.documentElement.classList.contains("dark");
+    applyTheme(next);
+    localStorage.setItem("tiendaflow-theme", next ? "dark" : "light");
+  };
+  return { dark, toggleTheme };
+}
 
 function whatsappLink(
   product: { name: string; price: string | number },
@@ -28,6 +72,7 @@ export default function CatalogClient({
   businessPhone: string;
 }) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const { dark, toggleTheme } = useTheme();
 
   const filtered = activeCategory
     ? products.filter(
@@ -48,7 +93,27 @@ export default function CatalogClient({
               {products.length} productos disponibles
             </p>
           </div>
-          <ShareButton />
+          <div className="flex items-center gap-2">
+            <ShareButton />
+            <button
+              type="button"
+              role="switch"
+              aria-checked={dark}
+              aria-label="Cambiar modo oscuro"
+              onClick={toggleTheme}
+              className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
+                dark
+                  ? "bg-primary-100 text-primary-700 hover:bg-primary-100"
+                  : "bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700"
+              }`}
+            >
+              {dark ? (
+                <Sun className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <Moon className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
+          </div>
         </div>
       </header>
 

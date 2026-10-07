@@ -13,12 +13,51 @@ export function ProductForm({ categories }: { categories: Category[] }) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  function handleFileChange(file: File | null) {
+  // Phone cameras produce multi-MB photos. Next.js caps Server Action
+  // bodies (1 MB by default), so downscale/compress before sending.
+  const MAX_DIMENSION = 1600;
+  const JPEG_QUALITY = 0.82;
+
+  async function compressImage(file: File): Promise<File> {
+    if (!file.type.startsWith("image/")) return file;
+    try {
+      const bitmap = await createImageBitmap(file);
+      const longest = Math.max(bitmap.width, bitmap.height);
+      const scale = Math.min(1, MAX_DIMENSION / longest);
+      // Already small enough — send the original.
+      if (scale === 1 && file.size <= 500 * 1024) {
+        bitmap.close();
+        return file;
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(bitmap.width * scale);
+      canvas.height = Math.round(bitmap.height * scale);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return file;
+      ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      bitmap.close();
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/jpeg", JPEG_QUALITY),
+      );
+      if (!blob) return file;
+      const baseName = file.name.replace(/\.[^.]+$/, "") || "producto";
+      return new File([blob], `${baseName}.jpg`, {
+        type: "image/jpeg",
+        lastModified: Date.now(),
+      });
+    } catch {
+      // Unsupported format (e.g. HEIC) — fall back to the original file.
+      return file;
+    }
+  }
+
+  async function handleFileChange(file: File | null) {
     if (!file) return;
-    setImageFile(file);
+    const compressed = await compressImage(file);
+    setImageFile(compressed);
     const reader = new FileReader();
     reader.onloadend = () => setPreview(reader.result as string);
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(compressed);
   }
 
   function handleSubmit(formData: FormData) {
