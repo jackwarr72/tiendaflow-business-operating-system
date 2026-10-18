@@ -164,7 +164,7 @@ export function MobileNavClient({ stores, currentStoreId, pathname }: MobileNavC
               ))}
               <hr className="my-1 border-slate-100" />
               <form
-                action={async () => {
+                onSubmit={async () => {
                   await logoutAction();
                 }}
               >

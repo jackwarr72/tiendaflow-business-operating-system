@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect, Suspense } from "react";
+import { useState, useTransition, useLayoutEffect, Suspense } from "react";
 import { confirmResetPasswordAction, updatePasswordAction } from "@/app/auth/actions";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import Link from "next/link";
@@ -17,9 +17,10 @@ function ResetPasswordForm() {
   const [token] = useState(() => searchParams.get("token") || "");
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    // Mounted check for SSR hydration safety
-    setMounted(true);
+  useLayoutEffect(() => {
+    // Mounted check for SSR hydration safety - use setTimeout to avoid sync setState
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {

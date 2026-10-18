@@ -5,7 +5,8 @@ import { ShareButton } from "@/components/share-button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
-import { Moon, Sun, ShoppingBag, MessageCircle } from "lucide-react";
+import { Moon, Sun, ShoppingBag, MessageCircle, Package, Heart } from "lucide-react";
+import Image from "next/image";
 import type { Product, Category } from "@/db/schema";
 
 const THEME_EVENT = "tiendaflow-theme-change";
@@ -172,14 +173,16 @@ export default function CatalogClient({
             >
               <div className="relative aspect-square bg-slate-100">
                 {product.imageUrl ? (
-                  <img
+                  <Image
                     src={product.imageUrl}
                     alt={product.name}
-                    className="h-full w-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-4xl">
-                    📦
+                  <div className="flex h-full items-center justify-center">
+                    <Package className="h-12 w-12 text-slate-400" aria-hidden="true" />
                   </div>
                 )}
                 {category && (
@@ -219,7 +222,9 @@ export default function CatalogClient({
       )}
 
       <footer className="px-4 pt-4 text-center">
-        <p className="text-xs text-slate-400">Hecho con ❤️ en TiendaFlow</p>
+        <p className="text-xs text-slate-400 flex items-center justify-center gap-1">
+          Hecho con <Heart className="h-3.5 w-3.5 text-rose-500" aria-hidden="true" /> en TiendaFlow
+        </p>
       </footer>
     </div>
   );

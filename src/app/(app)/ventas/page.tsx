@@ -1,15 +1,7 @@
 import { getOrders } from "@/app/actions";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Plus } from "lucide-react";
 import Link from "next/link";
-
-const channelLabels: Record<string, string> = {
-  whatsapp: "WhatsApp",
-  instagram: "Instagram",
-  tiktok: "TikTok",
-  facebook_marketplace: "Facebook",
-  in_person: "Presencial",
-  other: "Otro",
-};
+import { getChannelLabel } from "@/lib/channels";
 
 export const dynamic = "force-dynamic";
 
@@ -27,9 +19,10 @@ export default async function OrdersPage() {
         </div>
         <Link
           href="/venta"
-          className="rounded-full bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary-600/25"
+          className="flex items-center gap-2 rounded-full bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary-600/25"
         >
-          + Nueva
+          <Plus className="h-4 w-4" />
+          Nueva
         </Link>
       </header>
 
@@ -59,7 +52,7 @@ export default async function OrdersPage() {
                     {customer?.name ?? "Cliente ocasional"}
                   </p>
                   <p className="text-xs text-slate-500">
-                    {channelLabels[order.channel]} ·{" "}
+                    {getChannelLabel(order.channel)} ·{" "}
                     {new Date(order.createdAt).toLocaleDateString("es-MX", {
                       day: "numeric",
                       month: "short",

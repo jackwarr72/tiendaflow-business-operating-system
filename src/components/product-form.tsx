@@ -112,6 +112,7 @@ export function ProductForm({ categories }: { categories: Category[] }) {
           type="button"
           onClick={reset}
           className="rounded-full p-1 text-slate-400 hover:bg-slate-100"
+          aria-label="Cerrar formulario"
         >
           <X className="h-4 w-4" />
         </button>
@@ -135,6 +136,7 @@ export function ProductForm({ categories }: { categories: Category[] }) {
 
           {preview ? (
             <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-slate-100">
+              {/* eslint-disable-next-line @next/next/no-img-element -- local data URL preview */}
               <img
                 src={preview}
                 alt="Vista previa"
@@ -148,6 +150,7 @@ export function ProductForm({ categories }: { categories: Category[] }) {
                   if (fileInputRef.current) fileInputRef.current.value = "";
                 }}
                 className="absolute right-2 top-2 rounded-full bg-rose-500 p-1.5 text-white shadow-lg"
+                aria-label="Eliminar foto"
               >
                 <Trash2 className="h-4 w-4" />
               </button>

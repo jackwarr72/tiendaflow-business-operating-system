@@ -7,26 +7,10 @@ import {
   Clock,
   TrendingUp,
   AlertCircle,
+  Sun,
 } from "lucide-react";
 import Link from "next/link";
-
-const channelLabels: Record<string, string> = {
-  whatsapp: "WhatsApp",
-  instagram: "Instagram",
-  tiktok: "TikTok",
-  facebook_marketplace: "Facebook",
-  in_person: "Presencial",
-  other: "Otro",
-};
-
-const channelColors: Record<string, string> = {
-  whatsapp: "bg-green-500",
-  instagram: "bg-pink-500",
-  tiktok: "bg-slate-900",
-  facebook_marketplace: "bg-blue-600",
-  in_person: "bg-amber-500",
-  other: "bg-slate-400",
-};
+import { getChannelLabel, getChannelColor, getChannelInitials } from "@/lib/channels";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +23,7 @@ export default async function DashboardPage() {
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">TiendaFlow</h1>
-          <p className="text-sm text-slate-500">Hola, buen día ☀️</p>
+          <p className="text-sm text-slate-500 flex items-center gap-1">Hola, buen día <Sun className="h-4 w-4" aria-hidden="true" /></p>
         </div>
         <div className="flex items-center gap-2">
           <Link
@@ -117,18 +101,18 @@ export default async function DashboardPage() {
             {stats.channelBreakdown.map((row) => (
               <div key={row.channel} className="flex items-center gap-3">
                 <div
-                  className={`h-8 w-8 rounded-full ${
-                    channelColors[row.channel ?? "other"]
-                  } flex items-center justify-center text-white`}
+                  className={`h-8 w-8 rounded-full ${getChannelColor(
+                    row.channel ?? "other"
+                  )} flex items-center justify-center text-white`}
                 >
                   <span className="text-xs font-bold">
-                    {channelLabels[row.channel ?? "other"].slice(0, 2)}
+                    {getChannelInitials(row.channel ?? "other")}
                   </span>
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between text-sm">
                     <span className="font-medium text-slate-700">
-                      {channelLabels[row.channel ?? "other"]}
+                      {getChannelLabel(row.channel ?? "other")}
                     </span>
                     <span className="font-semibold text-slate-900">
                       ${Number(row.total).toLocaleString("es-MX")}
@@ -169,7 +153,7 @@ export default async function DashboardPage() {
                     {customer?.name ?? "Cliente ocasional"}
                   </p>
                   <p className="text-xs text-slate-500">
-                    {channelLabels[order.channel]}
+                    {getChannelLabel(order.channel)}
                   </p>
                 </div>
                 <div className="text-right">
