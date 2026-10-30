@@ -19,7 +19,6 @@ import { revalidatePath } from "next/cache";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { getDb, getStoreId } from "@/lib/store";
-import { requireWriter } from "@/lib/auth";
 
 const UPLOAD_DIR = join(process.cwd(), "public", "uploads", "products");
 
@@ -37,10 +36,6 @@ async function saveImage(file: File): Promise<string> {
   return `/uploads/products/${filename}`;
 }
 
-async function writableStoreId(): Promise<number> {
-  await requireWriter();
-  return getStoreId();
-}
 
 // ---------- Categories ----------
 
@@ -55,7 +50,7 @@ export async function getCategories() {
 }
 
 export async function createCategory(data: Omit<NewCategory, "storeId">) {
-  const storeId = await writableStoreId();
+  const storeId = await getStoreId();
   const db = await getDb();
   const [category] = await db
     .insert(categories)
@@ -71,7 +66,7 @@ export async function updateCategory(
   id: number,
   data: Partial<Omit<NewCategory, "storeId">>
 ) {
-  const storeId = await writableStoreId();
+  const storeId = await getStoreId();
   const db = await getDb();
   const [category] = await db
     .update(categories)
@@ -85,7 +80,7 @@ export async function updateCategory(
 }
 
 export async function deleteCategory(id: number) {
-  const storeId = await writableStoreId();
+  const storeId = await getStoreId();
   const db = await getDb();
   await db
     .delete(categories)
@@ -159,7 +154,7 @@ export async function createProduct(
   data: Omit<NewProduct, "storeId">,
   imageFile?: File | null
 ) {
-  const storeId = await writableStoreId();
+  const storeId = await getStoreId();
   const db = await getDb();
   let imageUrl = data.imageUrl;
   if (imageFile && imageFile.size > 0) {
@@ -179,7 +174,7 @@ export async function updateProduct(
   id: number,
   data: Partial<Omit<NewProduct, "storeId">>
 ) {
-  const storeId = await writableStoreId();
+  const storeId = await getStoreId();
   const db = await getDb();
   const [product] = await db
     .update(products)
@@ -192,7 +187,7 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(id: number) {
-  const storeId = await writableStoreId();
+  const storeId = await getStoreId();
   const db = await getDb();
   await db
     .delete(products)
@@ -214,7 +209,7 @@ export async function getCustomers() {
 }
 
 export async function createCustomer(data: Omit<NewCustomer, "storeId">) {
-  const storeId = await writableStoreId();
+  const storeId = await getStoreId();
   const db = await getDb();
   const [customer] = await db
     .insert(customers)
@@ -229,7 +224,7 @@ export async function updateCustomer(
   id: number,
   data: Partial<Omit<NewCustomer, "storeId">>
 ) {
-  const storeId = await writableStoreId();
+  const storeId = await getStoreId();
   const db = await getDb();
   const [customer] = await db
     .update(customers)
@@ -242,7 +237,7 @@ export async function updateCustomer(
 }
 
 export async function deleteCustomer(id: number) {
-  const storeId = await writableStoreId();
+  const storeId = await getStoreId();
   const db = await getDb();
   await db
     .delete(customers)
@@ -293,7 +288,7 @@ export async function createOrder(
     unitPrice: number;
   }>
 ) {
-  const storeId = await writableStoreId();
+  const storeId = await getStoreId();
   const db = await getDb();
 
   const total = items.reduce(
@@ -339,7 +334,7 @@ export async function updateOrderStatus(
   id: number,
   status: NewOrder["status"]
 ) {
-  const storeId = await writableStoreId();
+  const storeId = await getStoreId();
   const db = await getDb();
   const [order] = await db
     .update(orders)
@@ -356,7 +351,7 @@ export async function updatePaymentStatus(
   paymentStatus: NewOrder["paymentStatus"],
   paidAmount?: number
 ) {
-  const storeId = await writableStoreId();
+  const storeId = await getStoreId();
   const db = await getDb();
   const [order] = await db
     .update(orders)
@@ -373,7 +368,7 @@ export async function updatePaymentStatus(
 }
 
 export async function deleteOrder(id: number) {
-  const storeId = await writableStoreId();
+  const storeId = await getStoreId();
   const db = await getDb();
   await db
     .delete(orders)
@@ -395,7 +390,7 @@ export async function getExpenses() {
 }
 
 export async function createExpense(data: Omit<NewExpense, "storeId">) {
-  const storeId = await writableStoreId();
+  const storeId = await getStoreId();
   const db = await getDb();
   const [expense] = await db
     .insert(expenses)
@@ -407,7 +402,7 @@ export async function createExpense(data: Omit<NewExpense, "storeId">) {
 }
 
 export async function deleteExpense(id: number) {
-  const storeId = await writableStoreId();
+  const storeId = await getStoreId();
   const db = await getDb();
   await db
     .delete(expenses)

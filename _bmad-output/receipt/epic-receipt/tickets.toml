@@ -1,0 +1,131 @@
+# tickets.toml — epic-receipt children in build order
+
+[[entry]]
+id = 1
+type = "story"
+title = "Money formatter (lib/money.ts)"
+description = "Create src/lib/money.ts with formatMXN(n: number | string) returning MXN string with 2 decimals using es-MX locale. Used by all receipt exports and UI."
+verify = "Import formatMXN in a test file; formatMXN(1234.5) === '$ 1,234.50'; formatMXN('99.9') === '$ 99.90'"
+covers = ["receipt", "export-csv", "export-pdf"]
+after = []
+hitl = false
+risk = "low"
+references = ["architecture-receipt.md#ad-4"]
+
+[[entry]]
+id = 2
+type = "story"
+title = "Receipt data contract (app/recibo/types.ts)"
+description = "Define Receipt, ReceiptItem, StoreRef, CustomerRef, PaymentRef types. Receipt includes folio, store, customer, items[], totals (subtotal, total, paid), payment status, generatedAt."
+verify = "TypeScript compiles; Receipt type matches the shape returned by getReceipt and consumed by HTML/CSV/PDF exporters"
+covers = ["receipt", "export-csv", "export-pdf"]
+after = [1]
+hitl = false
+risk = "low"
+references = ["architecture-receipt.md#ad-5"]
+
+[[entry]]
+id = 3
+type = "story"
+title = "Receipt query action (app/recibo/actions.ts)"
+description = "Implement getReceipt(orderId: number): Promise<Receipt | null>. Joins orders + order_items + products + customers + stores. Filters by storeId (getStoreId). Returns null for unknown/foreign orders. Returns null (not error) for non-paid or cancelled orders — the route handles 404."
+verify = "Unit test: getReceipt(validPaidOrderId) returns Receipt with correct folio, items, totals; getReceipt(otherStoreOrderId) returns null; getReceipt(cancelledOrderId) returns null"
+covers = ["receipt", "export-csv", "export-pdf"]
+after = [2]
+hitl = false
+risk = "medium"
+references = ["architecture-receipt.md#ad-6", "architecture-receipt.md#ad-7", "architecture-receipt.md#ad-8"]
+
+[[entry]]
+id = 4
+type = "story"
+title = "Receipt HTML page (app/(app)/recibo/[id]/page.tsx)"
+description = "Server component at /recibo/[id]. Calls getReceipt(id). 404 if null. Renders standalone HTML receipt: store name + folio (ORD-<id>) + date, customer name/phone if present, items table (name, qty, unit price, subtotal), totals (subtotal, total, paid, payment status), inline CSS (no external requests), no JS. export const dynamic = 'force-dynamic'."
+verify = "Visit /recibo/<validPaidOrderId> — renders correct receipt with store name, folio ORD-<id>, all items, correct totals matching screen. Visit /recibo/<otherStoreOrderId> — 404. Visit /recibo/<cancelledOrderId> — 404."
+covers = ["receipt", "export-pdf"]
+after = [3]
+hitl = false
+risk = "medium"
+references = ["architecture-receipt.md#ad-1", "architecture-receipt.md#ad-2", "architecture-receipt.md#ad-10", "architecture-receipt.md#ad-12"]
+
+[[entry]]
+id = 5
+type = "story"
+title = "CSV export route (app/api/recibo/[id]/csv/route.ts)"
+description = "Route handler GET /api/recibo/[id]/csv. Calls getReceipt(id). 404 if null. Returns text/csv; charset=utf-8 with Content-Disposition: attachment; filename=\"recibo-<id>.csv\". CSV columns: folio, fecha, cliente, telefono, producto, cantidad, precio_unitario, subtotal, total, pagado, estado_pago. Money as raw digits (no locale formatting). UTF-8."
+verify = "GET /api/recibo/<validPaidOrderId>/csv — downloads CSV with correct columns and data. Money values are raw numbers (e.g., 1234.50 not $ 1,234.50). GET for other-store or cancelled — 404."
+covers = ["export-csv"]
+after = [3]
+hitl = false
+risk = "low"
+references = ["architecture-receipt.md#ad-3", "architecture-receipt.md#ad-10"]
+
+[[entry]]
+id = 6
+type = "story"
+title = "PDF export route (app/api/recibo/[id]/pdf/route.ts)"
+description = "Route handler GET /api/recibo/[id]/pdf. Calls getReceipt(id). 404 if null. Returns the SAME standalone HTML as the page (reuse rendering logic or call the page internally) with Content-Disposition: attachment; filename=\"recibo-<id>.html\". User prints to PDF from browser. No puppeteer/playwright."
+verify = "GET /api/recibo/<validPaidOrderId>/pdf — downloads HTML file that renders identically to /recibo/<id> when opened. GET for other-store or cancelled — 404."
+covers = ["export-pdf"]
+after = [4]
+hitl = false
+risk = "low"
+references = ["architecture-receipt.md#ad-3", "architecture-receipt.md#ad-10"]
+
+[[entry]]
+id = 7
+type = "story"
+title = "Receipt button component (components/receipt-button.tsx)"
+description = "Client component ReceiptButton({ orderId, className }). Renders <a href=\"/recibo/${orderId}\" target=\"_blank\" rel=\"noopener\"> with button styling. Receives orderId prop only — no fetching. Used in Ventas list and QuickSale success screen."
+verify = "Render ReceiptButton with orderId=123 — link href is /recibo/123, target _blank. Click opens new tab with receipt."
+covers = ["receipt"]
+after = [4]
+hitl = false
+risk = "low"
+references = ["architecture-receipt.md#ad-11", "architecture-receipt.md#ad-12"]
+
+[[entry]]
+id = 8
+type = "story"
+title = "Add receipt button to Ventas page"
+description = "In src/app/(app)/ventas/page.tsx, add ReceiptButton to each paid order card (paymentStatus === 'paid' and status !== 'cancelled'). Button appears next to status badges."
+verify = "Visit /ventas — paid orders show 'Recibo' button; clicking opens /recibo/<id> in new tab. Cancelled/pending orders do not show button."
+covers = ["receipt"]
+after = [7]
+hitl = false
+risk = "low"
+references = ["architecture-receipt.md#ad-12", "architecture-receipt.md#ad-8"]
+
+[[entry]]
+id = 9
+type = "story"
+title = "Add receipt button to QuickSale success screen"
+description = "In src/components/quick-sale.tsx, after successful order creation, show ReceiptButton with the new order's id alongside the success message."
+verify = "Complete a quick sale — success screen shows 'Recibo' button; clicking opens /recibo/<newOrderId> in new tab with correct receipt data."
+covers = ["receipt"]
+after = [7]
+hitl = false
+risk = "low"
+references = ["architecture-receipt.md#ad-12", "architecture-receipt.md#ad-8"]
+
+[[entry]]
+id = 10
+type = "story"
+title = "Refactor sweep"
+description = "Cleanup pass after all stories: deduplicate any shared HTML rendering logic between page and PDF route; ensure consistent money formatting via lib/money.ts everywhere; remove any inline toLocaleString in receipt code; verify no console.log or debug code remains."
+verify = "grep for toLocaleString in recibo/ — none found. lib/money.ts imported in all receipt files. PDF route reuses page rendering or shares a render helper."
+covers = ["receipt", "export-csv", "export-pdf"]
+after = [4, 5, 6, 7, 8, 9]
+hitl = false
+risk = "low"
+
+[[entry]]
+id = 11
+type = "story"
+title = "E2E verification"
+description = "Manual end-to-end check: create order via quick-sale → verify receipt button on success screen → verify receipt button on ventas list → verify /recibo/<id> renders correctly → verify CSV download → verify PDF (HTML) download → verify 404 for other-store and cancelled orders → verify currency matches screen in all formats."
+verify = "All Done when checks from epic pass."
+covers = ["receipt", "export-csv", "export-pdf"]
+after = [10]
+hitl = true
+risk = "low"

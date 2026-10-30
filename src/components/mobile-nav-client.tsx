@@ -15,7 +15,7 @@ import {
   ChevronDown,
   LogOut,
 } from "lucide-react";
-import { logoutAction } from "@/app/auth/actions";
+
 
 interface StoreInfo {
   id: number;

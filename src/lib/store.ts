@@ -5,17 +5,13 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { getStoreDb } from "@/db/routing";
 import { stores, type Store } from "@/db/schema";
-import { getSessionUser } from "@/lib/auth";
 
 export type { Store };
 
 // Every table that carries store_id is filtered by this id. Callers never pass a
 // store id themselves; they get it from the request context.
 export async function getStoreId(): Promise<number> {
-  const user = await getSessionUser();
-  if (user) return user.storeId;
-
-  // Unauthenticated context: fall back to the single default store (id 1).
+  // No auth: fall back to cookie or default store (id 1).
   const cookieStore = await cookies();
   const raw = cookieStore.get("tf_store")?.value;
   if (raw) {
